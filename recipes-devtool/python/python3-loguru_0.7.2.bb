@@ -1,7 +1,5 @@
-SUMMARY = "Barcode scanning SDK for Python"
-DESCRIPTION = "The Python Barcode SDK is a wrapper for Dynamsoft C++ Barcode SDK. \
-It comes with all the general features of Dynamsoft Barcode Reader, bringing \
-convenience for Python developers."
+SUMMARY = "Python logging made (stupidly) simple"
+DESCRIPTION = "Loguru is a library which aims to bring enjoyable logging in Python."
 
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302"
