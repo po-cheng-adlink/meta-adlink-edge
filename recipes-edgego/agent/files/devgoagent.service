@@ -1,0 +1,14 @@
+[Unit]
+Description=devicego agent service
+After=display-manager.service network.target syslog.target
+
+[Service]
+Type=simple
+Environment=DISPLAY=:0
+Environment=XAUTHORITY=""
+ExecStart=/opt/edgego/agent/agent/agent
+Restart=on-failure
+
+[Install]
+WantedBy=default.target
+
