@@ -1,0 +1,12 @@
+[Unit]
+Description=devicego agent upgrade service
+After=display-manager.service network.target syslog.target
+
+[Service]
+Type=simple
+ExecStart=/opt/edgego/agent/agent/upgrade
+Restart=on-failure
+
+[Install]
+WantedBy=default.target
+
