@@ -4,11 +4,11 @@ LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302"
 
 PR = "r0"
-SRCSERVER = "git://github.com/adlink-edgego/edgego-agent.git"
+SRCSERVER = "git://GitLab.Adlinktech.com/SEC_IST_CROSS_TEAM/edgego-agent.git"
 SRCBRANCH = "main"
-SRCOPTIONS = ";protocol=https"
+SRCOPTIONS = ";protocol=http"
 SRCOPTIONS:append:private = ";user=${PRIVATE_USER}:${PRIVATE_TOKEN}"
-SRCREV = "a1d0d083081ffb90e96410512f5f0ba44c4ee86a"
+SRCREV = "caedfb60d0a5e1ba7b43343dab3177f6dd873476"
 SRC_URI = "${SRCSERVER};branch=${SRCBRANCH}${SRCOPTIONS}"
 
 inherit python3-dir setuptools3
@@ -27,7 +27,9 @@ RDEPENDS:${PN} += " \
         python3-packaging \
         python3-pysmart \
         python3-pytz \
+        python3-pika \
+        smartmontools \
 "
-# FIXME: python3-pika requires python3-twisted but couldn't install in do_rootfs due to rdepends
-#        so use pkg_postinst_ontarget() to pip3 install pika and twisted
-#       python3-pika
+#
+# NOTE: Remove dependency to python3-twisted from python3-pika for now. As we are not using python3-twisted.
+#
