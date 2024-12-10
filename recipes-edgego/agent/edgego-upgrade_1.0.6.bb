@@ -13,6 +13,8 @@ SRC_URI = "${SRCSERVER};branch=${SRCBRANCH}${SRCOPTIONS}"
 
 SRC_URI += "file://devgoupgrade.service"
 
+RCONFLICTS:${PN} = "python3-edgego-agent"
+
 #
 # Following execution of buildLinuxPackage/build.sh, edgegoagent.deb edgegoupgrade.deb and vncservice.deb are generated
 #

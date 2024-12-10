@@ -4,7 +4,7 @@ After=display-manager.service network.target syslog.target
 
 [Service]
 Type=simple
-ExecStart=/opt/edgego/agent/agent/upgrade
+ExecStart=@SYSTEM_SERVICE_RUN@
 Restart=on-failure
 
 [Install]
