@@ -11,12 +11,12 @@ SRCOPTIONS:append:private = ";user=${PRIVATE_USER}:${PRIVATE_TOKEN}"
 SRCREV = "caedfb60d0a5e1ba7b43343dab3177f6dd873476"
 SRC_URI = "${SRCSERVER};branch=${SRCBRANCH}${SRCOPTIONS}"
 
-SRC_URI += "file://devgoagent.service"
+SRC_URI += "file://devgoagent.service file://devgoupgrade.service"
 
-RCONFLICTS:${PN} = "python3-edgego-agent"
+RCONFLICTS:${PN} = "edgego-agent edgego-upgrade"
 
 #
-# Following execution of buildLinuxPackage/build.sh, edgegoagent.deb edgegoupgrade.deb and vncservice.deb are generated
+# bundle python scripts for edgego-agent only
 #
 # edgego agent:
 #
@@ -115,15 +115,6 @@ RCONFLICTS:${PN} = "python3-edgego-agent"
 
 S = "${WORKDIR}/git"
 
-DEPENDS += " \
-	python3-pyinstaller-native \
-	python3-altgraph-native \
-	python3-pyinstaller-hooks-contrib-native \
-	python3-setuptools-native \
-	python3-packaging-native \
-	openssl-native \
-"
-
 RDEPENDS:${PN} += " \
 	python3-flask \
 	python3-flask-socketio \
@@ -141,112 +132,77 @@ RDEPENDS:${PN} += " \
 
 INSANE_SKIP:${PN} += "already-stripped file-rdeps"
 
-do_compile () {
-	# agent
-	pyinstaller -F ${S}/agent/agent.py
-	pyinstaller -F ${S}/scheduler/cpu.py
-	pyinstaller -F ${S}/scheduler/hdd.py
-	pyinstaller -F ${S}/scheduler/heartbeat.py
-	pyinstaller -F ${S}/scheduler/mem.py
-	pyinstaller -F ${S}/scheduler/network.py
-	# terminal
-	pyinstaller --collect-all socketio --collect-all engineio --collect-all flask_socketio -F ${S}/agent/terminal.py
-	# vnc_indicator
-	pyinstaller -F ${S}/agent/vnc_indicator.py
-	# devicego
-	pyinstaller -F ${S}/cmd/devicego.py
-#	# upgrade
-#	pyinstaller -F ${S}/agent/upgrade.py
-}
-
-SIGNKEY ?= "${S}/keys/private.pem"
-
-do_sign () {
-	# signed all the pyinstaller build binaries
-	for fname in agent terminal vnc_indicator cpu hdd mem network heartbeat devicego; do
-		openssl dgst -sha256 -sign ${SIGNKEY} -passin pass:edgego -out ${S}/dist/${fname}.sha256 ${S}/dist/${fname}
-		openssl base64 -in ${S}/dist/${fname}.sha256 -out ${S}/dist/signature.${fname}
-	done
-}
-addtask sign before do_install after do_compile
+SYSTEM_SERVICE_RUN_AGENT ?= "python3 /opt/edgego/agent/agent/agent.py"
+SYSTEM_SERVICE_RUN_UPGRADE ?= "python3 /opt/edgego/agent/agent/upgrade.py"
 
 do_install () {
 	#
 	# directories
 	#
 	install -d ${D}${base_prefix}/opt/edgego/agent/agent/
-	install -d ${D}${base_prefix}/opt/edgego/agent/agent/libs/
 	install -d ${D}${base_prefix}/opt/edgego/agent/agent/root/
 	install -d ${D}${base_prefix}/opt/edgego/agent/agent/scheduler/
 	install -d ${D}${base_prefix}/opt/edgego/agent/agent/terminalfolder/static/
 	install -d ${D}${base_prefix}/opt/edgego/agent/cmd/
 	install -d ${D}${base_prefix}/opt/edgego/agent/deploydata/agent/
-	install -d ${D}${base_prefix}/opt/edgego/agent/messaging/send/edgego-server/
+	install -d ${D}${base_prefix}/opt/edgego/agent/deploydata/upgrade/
 
 	#
 	# files
 	#
 	install -m 0644 ${S}/Readme.txt ${D}${base_prefix}/opt/edgego/agent/Readme.txt
+	#
 	# agent
-	install -m 0755 ${S}/dist/agent ${D}${base_prefix}/opt/edgego/agent/agent/agent
+	#
+	install -m 0755 ${S}/agent/agent.py ${D}${base_prefix}/opt/edgego/agent/agent/agent.py
 	install -m 0644 ${S}/agent/agent.ini ${D}${base_prefix}/opt/edgego/agent/agent/agent.ini
-	# cp devicegosdk/devicegosdk/devicegosdktools/libs/pcie_dll_x64.so edgegoagent/opt/edgego/agent/agent/libs
-	install -m 0644 ${S}/devicegosdk/devicegosdk/devicegosdktools/libs/pcie_dll_x64.so ${D}${base_prefix}/opt/edgego/agent/agent/libs/pcie_dll_x64.so
-	# cp devicegosdk/devicegosdk/devicegosdktools/libs/pcie_dll_x86.so edgegoagent/opt/edgego/agent/agent/libs
-	install -m 0644 ${S}/devicegosdk/devicegosdk/devicegosdktools/libs/pcie_dll_x86.so ${D}${base_prefix}/opt/edgego/agent/agent/libs/pcie_dll_x86.so
-	# public key for signature verifcation
-	install -m 0644 ${S}/keys/public.pem ${D}${base_prefix}/opt/edgego/agent/agent/public.pem
-	install -m 0755 ${S}/dist/cpu ${D}${base_prefix}/opt/edgego/agent/agent/scheduler/cpu
-	install -m 0755 ${S}/dist/hdd ${D}${base_prefix}/opt/edgego/agent/agent/scheduler/hdd
-	install -m 0755 ${S}/dist/heartbeat ${D}${base_prefix}/opt/edgego/agent/agent/scheduler/heartbeat
-	install -m 0755 ${S}/dist/mem ${D}${base_prefix}/opt/edgego/agent/agent/scheduler/mem
-	install -m 0755 ${S}/dist/network ${D}${base_prefix}/opt/edgego/agent/agent/scheduler/network
-	# signatures
-	install -m 0644 ${S}/scheduler/scheduler.ini ${D}${base_prefix}/opt/edgego/agent/agent/scheduler/scheduler.ini
-	install -m 0644 ${S}/dist/signature.cpu ${D}${base_prefix}/opt/edgego/agent/agent/scheduler/signature.cpu
-	install -m 0644 ${S}/dist/signature.hdd ${D}${base_prefix}/opt/edgego/agent/agent/scheduler/signature.hdd
-	install -m 0644 ${S}/dist/signature.heartbeat ${D}${base_prefix}/opt/edgego/agent/agent/scheduler/signature.heartbeat
-	install -m 0644 ${S}/dist/signature.mem ${D}${base_prefix}/opt/edgego/agent/agent/scheduler/signature.mem
-	install -m 0644 ${S}/dist/signature.network ${D}${base_prefix}/opt/edgego/agent/agent/scheduler/signature.network
-	install -m 0644 ${S}/dist/signature.agent ${D}${base_prefix}/opt/edgego/agent/agent/signature.agent
-	install -m 0644 ${S}/dist/signature.terminal ${D}${base_prefix}/opt/edgego/agent/agent/signature.terminal
-	install -m 0644 ${S}/dist/signature.vnc_indicator ${D}${base_prefix}/opt/edgego/agent/agent/signature.vnc_indicator
+	# scheduler
+	install -m 0755 ${S}/agent/scheduler/cpu.py ${D}${base_prefix}/opt/edgego/agent/agent/scheduler/cpu.py
+	install -m 0755 ${S}/agent/scheduler/hdd.py ${D}${base_prefix}/opt/edgego/agent/agent/scheduler/hdd.py
+	install -m 0755 ${S}/agent/scheduler/heartbeat.py ${D}${base_prefix}/opt/edgego/agent/agent/scheduler/heartbeat.py
+	install -m 0755 ${S}/agent/scheduler/mem.py ${D}${base_prefix}/opt/edgego/agent/agent/scheduler/mem.py
+	install -m 0755 ${S}/agent/scheduler/network.py ${D}${base_prefix}/opt/edgego/agent/agent/scheduler/network.py
+	install -m 0644 ${S}/agent/scheduler/scheduler.ini ${D}${base_prefix}/opt/edgego/agent/agent/scheduler/scheduler.ini
+	# scheduler - not pyinstalled
+	install -m 0755 ${S}/agent/scheduler/cputemp.py ${D}${base_prefix}/opt/edgego/agent/agent/scheduler/cputemp.py
+	install -m 0755 ${S}/agent/scheduler/gmail.py ${D}${base_prefix}/opt/edgego/agent/agent/scheduler/gmail.py
+	install -m 0755 ${S}/agent/scheduler/monitorprocess.py ${D}${base_prefix}/opt/edgego/agent/agent/scheduler/monitorprocess.py
 	# terminal
-	install -m 0755 ${S}/dist/terminal ${D}${base_prefix}/opt/edgego/agent/agent/terminal
+	install -m 0755 ${S}/agent/terminal.py ${D}${base_prefix}/opt/edgego/agent/agent/terminal.py
 	install -D ${S}/agent/terminalfolder/static/* ${D}${base_prefix}/opt/edgego/agent/agent/terminalfolder/static/
 	# vnc_indicator
-	install -m 0755 ${S}/dist/vnc_indicator ${D}${base_prefix}/opt/edgego/agent/agent/vnc_indicator
-	# devicego
-	install -m 0755 ${S}/dist/devicego ${D}${base_prefix}/opt/edgego/agent/cmd/devicego
+	install -m 0755 ${S}/agent/vnc_indicator.py ${D}${base_prefix}/opt/edgego/agent/agent/vnc_indicator.py
+	# upgrade
+	install -m 0755 ${S}/agent/upgrade.py ${D}${base_prefix}/opt/edgego/agent/agent/upgrade.py
+
+	#
+	# cmd/devicego
+	#
+	install -m 0755 ${S}/cmd/devicego.py ${D}${base_prefix}/opt/edgego/agent/cmd/devicego.py
 	install -m 0755 ${S}/cmd/devicego.ini ${D}${base_prefix}/opt/edgego/agent/cmd/devicego.ini
-	# cp devicegosdk/devicegosdk/devicegosdktools/libs/libEdgeGoMDNS_ARM.so edgegoagent/opt/edgego/agent/cmd/
-	install -m 0644 ${S}/devicegosdk/devicegosdk/devicegosdktools/libs/libEdgeGoMDNS_ARM.so ${D}${base_prefix}/opt/edgego/agent/cmd/libEdgeGoMDNS_ARM.so
-	# cp devicegosdk/devicegosdk/devicegosdktools/libs/libEdgeGoMDNS_x86.so edgegoagent/opt/edgego/agent/cmd/
-	#install -m 0644 ${S}/devicegosdk/devicegosdk/devicegosdktools/libs/libEdgeGoMDNS_x86.so ${D}${base_prefix}/opt/edgego/agent/cmd/libEdgeGoMDNS_x86.so
-	install -m 0755 ${S}/dist/signature.devicego ${D}${base_prefix}/opt/edgego/agent/cmd/signature.devicego
+	# cmd/devicego - not pyinstalled
+	install -m 0755 ${S}/cmd/autoonboard.py ${D}${base_prefix}/opt/edgego/agent/cmd/autoonboard.py
 
 	# prerm / postinst scripts
 	install -D ${S}/deploydata/linux/agent/* ${D}${base_prefix}/opt/edgego/agent/deploydata/agent/
+	install -D ${S}/deploydata/linux/upgrade/* ${D}${base_prefix}/opt/edgego/agent/deploydata/upgrade/
 
 	# systemd devgoagent.service
 	if [ -f ${WORKDIR}/devgoagent.service ]; then
 		install -d ${D}${systemd_unitdir}/system
 		install -m 644 ${WORKDIR}/devgoagent.service ${D}${systemd_unitdir}/system/devgoagent.service
+		sed -i "s,@SYSTEM_SERVICE_RUN@,${SYSTEM_SERVICE_RUN_AGENT},g" ${D}${systemd_unitdir}/system/devgoagent.service
 		install -d ${D}${sysconfdir}/systemd/system/multi-user.target.wants
 		ln -sf ${systemd_unitdir}/system/devgoagent.service ${D}${sysconfdir}/systemd/system/multi-user.target.wants/devgoagent.service
 	fi
-}
-
-pkg_prerm:${PN} () {
-	/opt/edgego/agent/deploydata/agent/uninstallservice.sh
-	pip3 uninstall -y -v twisted
-	pip3 uninstall -y -v pika
-}
-
-pkg_postinst_ontarget:${PN} () {
-	pip3 install -I -U -v pika
-	pip3 install -I -U -v twisted
-	/opt/edgego/agent/deploydata/agent/install.sh
+	# systemd devgoupgrade.service
+	if [ -f ${WORKDIR}/devgoupgrade.service ]; then
+		install -d ${D}${systemd_unitdir}/system
+		install -m 644 ${WORKDIR}/devgoupgrade.service ${D}${systemd_unitdir}/system/devgoupgrade.service
+		sed -i "s,@SYSTEM_SERVICE_RUN@,${SYSTEM_SERVICE_RUN_UPGRADE},g" ${D}${systemd_unitdir}/system/devgoupgrade.service
+		install -d ${D}${sysconfdir}/systemd/system/multi-user.target.wants
+		ln -sf ${systemd_unitdir}/system/devgoupgrade.service ${D}${sysconfdir}/systemd/system/multi-user.target.wants/devgoupgrade.service
+	fi
 }
 
 FILES:${PN} = "${base_prefix}/opt/* ${systemd_unitdir}/system/* ${sysconfdir}/systemd/system/multi-user.target.wants/*"
