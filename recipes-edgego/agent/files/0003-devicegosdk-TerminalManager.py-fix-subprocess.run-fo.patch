@@ -1,0 +1,144 @@
+From 0e12dee4c664409c1bbb2efff354388764ae3bd9 Mon Sep 17 00:00:00 2001
+From: "po.cheng" <po.cheng@adlinktech.com>
+Date: Thu, 20 Feb 2025 13:22:33 +0800
+Subject: [PATCH 3/5] devicegosdk: TerminalManager.py: fix subprocess.run for
+ running agents as scripts
+
+Signed-off-by: po.cheng <po.cheng@adlinktech.com>
+---
+ .../devicegosdk/DeviceGoTerminalManager.py    | 59 ++++++++++++++-----
+ 1 file changed, 43 insertions(+), 16 deletions(-)
+
+diff --git a/devicegosdk/devicegosdk/DeviceGoTerminalManager.py b/devicegosdk/devicegosdk/DeviceGoTerminalManager.py
+index 623455d..a2e1c1e 100644
+--- a/devicegosdk/devicegosdk/DeviceGoTerminalManager.py
++++ b/devicegosdk/devicegosdk/DeviceGoTerminalManager.py
+@@ -1,6 +1,7 @@
+ import random
+ import string
+ import os
++import platform
+ import subprocess
+ import sys
+ import datetime
+@@ -18,6 +19,8 @@ from cryptography.hazmat.backends import default_backend
+ from cryptography.x509.oid import NameOID
+ from .DeviceGoUtils import DeviceGoUtils
+ 
++osmachine = platform.machine()
++
+ if os.name == "nt":
+     import win32console, win32con, time
+ else:
+@@ -36,7 +39,11 @@ else:
+     if os.name == "nt":
+         TERMINAL_PATH = "terminal.exe"
+     else:
+-        TERMINAL_PATH = "terminal"
++        if osmachine == "aarch64" or osmachine == "arm64":
++            TERMINAL_FOLDER = "/opt/edgego/agent/agent/terminalfolder"
++            TERMINAL_PATH = "terminal.py"
++        else:
++            TERMINAL_PATH = "terminal"
+ 
+ # # TERMINAL_PATH = (
+ # #     "C:\\Program Files (x86)\\EdgeGO\\edgegoagent\\agent\\terminal.dist\\terminal.exe"
+@@ -69,6 +76,7 @@ class DeviceGoTerminalManager:
+             try:
+                 res = requests.get(f"https://localhost:{port}/status", timeout=1, verify=False)
+                 if res.content.decode() == "ready" and res.status_code == 200:
++                    print(f"Connection to https://localhost:{port} success.")
+                     break
+                 else:
+                     print(f"Connection to https://localhost:{port} failed. Retrying in {retry_interval} seconds...")
+@@ -150,10 +158,16 @@ class DeviceGoTerminalManager:
+             otk = output_bytes.decode("utf-8").strip()
+             return otk, keyname
+         else:
+-            p = subprocess.run(
+-                [TERMINAL_PATH, "--generate-otk", keyname],
+-                stdout=subprocess.PIPE,
+-            )
++            if osmachine == "aarch64" or osmachine == "arm64":
++                p = subprocess.run(
++                    ["/usr/bin/python3", "{}/../{}".format(TERMINAL_FOLDER, TERMINAL_PATH), "--generate-otk", keyname],
++                    stdout=subprocess.PIPE,
++                )
++            else:
++                p = subprocess.run(
++                    [TERMINAL_PATH, "--generate-otk", keyname],
++                    stdout=subprocess.PIPE,
++                )
+             output_bytes = p.stdout
+             otk = output_bytes.decode("utf-8").strip()
+             return otk, keyname
+@@ -198,22 +212,24 @@ class DeviceGoTerminalManager:
+                         # print(f"Removed: {file_path}")
+ 
+     def spawn_terminal(self, username, password, domain=None):
++        print(f"spawn terminal: {username}, {password}, {domain}")
+         try:
+             workfolder = None
+             if getattr(sys, "frozen", False):
+                 workfolder = os.path.dirname(sys.executable)
+             else:
+-                workfolder = os.path.dirname(os.path.abspath(__file__))
++                if osmachine == "aarch64" or osmachine == "arm64":
++                    workfolder = "/opt/edgego/agent/agent"
++                else:
++                    workfolder = os.path.dirname(os.path.abspath(__file__))
+ 
+             is_verified, err_msg = DeviceGoUtils.verify_hash_and_signature(
+                 file_path=(
+-                    os.path.join(workfolder, "terminal.exe")
+-                    if os.name == "nt"
+-                    else os.path.join(workfolder, "terminal")
++                    os.path.join(workfolder, "terminal.exe") if os.name == "nt" else os.path.join(workfolder, "terminal")
+                 ),
+                 signature_path=os.path.join(workfolder, "signature.terminal"),
+             )
+-            if not is_verified:
++            if not is_verified and not (osmachine == "aarch64" or osmachine == "arm64"):
+                 print(f"Signature verification failed: {err_msg}")
+                 return "", f"Signature verification failed: {err_msg}"
+ 
+@@ -288,9 +304,14 @@ class DeviceGoTerminalManager:
+                             bash_process.stdin.write(
+                                 f"export TERM=xterm-256color\n".encode()
+                             )
+-                            bash_process.stdin.write(
+-                                f"./terminal --port {port_str} --username {username}\n".encode()
+-                            )
++                            if osmachine == "aarch64" or osmachine == "arm64":
++                                bash_process.stdin.write(
++                                    f"python3 ./terminal.py --port {port_str} --username {username}\n".encode()
++                                )
++                            else:
++                                bash_process.stdin.write(
++                                    f"./terminal --port {port_str} --username {username}\n".encode()
++                                )
+                             bash_process.stdin.close()
+ 
+                             # Read and print the output of the commands
+@@ -309,9 +330,15 @@ class DeviceGoTerminalManager:
+ 
+                             port_str = str(port)
+                             bash_process.stdin.write(f"export TERM=xterm-256color\n")
+-                            bash_process.stdin.write(
+-                                f"./terminal --port {port_str} --username {username}\n"
+-                            )
++                            if osmachine == "aarch64" or osmachine == "arm64":
++                                print(f"start terminal web-server: python3 ./terminal.py --port {port_str} --username {username}\n")
++                                bash_process.stdin.write(
++                                    f"python3 ./terminal.py --port {port_str} --username {username}\n"
++                                )
++                            else:
++                                bash_process.stdin.write(
++                                    f"./terminal --port {port_str} --username {username}\n"
++                                )
+                             bash_process.stdin.close()
+ 
+                             # Read and print the output of the commands
+-- 
+2.25.1
+

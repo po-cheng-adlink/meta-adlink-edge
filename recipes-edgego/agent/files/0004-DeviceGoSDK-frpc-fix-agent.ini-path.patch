@@ -1,0 +1,42 @@
+From c16aafa25d0d77a0a981b13ba5cef70df82ed5ed Mon Sep 17 00:00:00 2001
+From: "po.cheng" <po.cheng@adlinktech.com>
+Date: Thu, 20 Feb 2025 17:21:33 +0800
+Subject: [PATCH 4/5] DeviceGoSDK: frpc: fix agent.ini path
+
+Signed-off-by: po.cheng <po.cheng@adlinktech.com>
+---
+ devicegosdk/devicegosdk/frpc.py | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/devicegosdk/devicegosdk/frpc.py b/devicegosdk/devicegosdk/frpc.py
+index 356d4b0..83e9f8e 100644
+--- a/devicegosdk/devicegosdk/frpc.py
++++ b/devicegosdk/devicegosdk/frpc.py
+@@ -8,10 +8,12 @@ import yaml
+ import json
+ import requests
+ import tempfile
++import platform
+ 
+ from . import ConnTool as ConnTool
+ from .DeviceGoVNCIndicator import DeviceGoVNCIndicator
+ 
++osmachine = platform.machine()
+ sel = selectors.DefaultSelector()
+ 
+ frpc_logger = logging.getLogger("frpc Logging")
+@@ -194,7 +196,10 @@ class Connection:
+         if getattr(sys, "frozen", False):
+             workfolder = os.path.dirname(sys.executable)
+         else:
+-            workfolder = os.path.dirname(os.path.abspath(__file__))
++            if osmachine == "aarch64" or osmachine == "arm64":
++                workfolder = "/opt/edgego/agent/agent"
++            else:
++                workfolder = os.path.dirname(os.path.abspath(__file__))
+ 
+         agent_ini_path = os.path.join(workfolder, "agent.ini")
+ 
+-- 
+2.25.1
+

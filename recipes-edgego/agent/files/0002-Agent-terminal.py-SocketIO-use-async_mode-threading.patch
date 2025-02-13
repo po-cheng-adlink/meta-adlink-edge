@@ -1,0 +1,55 @@
+From 98a1cc36efbb726407b66daa2e916bf41802e54f Mon Sep 17 00:00:00 2001
+From: "po.cheng" <po.cheng@adlinktech.com>
+Date: Thu, 20 Feb 2025 13:21:05 +0800
+Subject: [PATCH 2/5] Agent: terminal.py: SocketIO use async_mode=threading
+
+Signed-off-by: po.cheng <po.cheng@adlinktech.com>
+---
+ agent/terminal.py | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
+
+diff --git a/agent/terminal.py b/agent/terminal.py
+index 1fc39b1..dbb17f5 100644
+--- a/agent/terminal.py
++++ b/agent/terminal.py
+@@ -17,6 +17,7 @@ import random
+ import string
+ import threading
+ import hashlib
++import platform
+ 
+ # import engineio
+ # import socketio
+@@ -27,6 +28,8 @@ from cryptography.hazmat.primitives.asymmetric import rsa
+ from cryptography.hazmat.backends import default_backend
+ from cryptography.x509.oid import NameOID
+ 
++osmachine = platform.machine()
++
+ # if windows, don't import pty, and don't try to use it
+ if os.name != "nt":
+     import pty
+@@ -40,7 +43,10 @@ else:
+ if getattr(sys, "frozen", False):
+     TERMINAL_FOLDER = os.path.join(os.path.dirname(sys.executable), "terminalfolder")
+ else:
+-    TERMINAL_FOLDER = "terminalfolder"
++    if osmachine == "aarch64" or osmachine == "arm64":
++        TERMINAL_FOLDER = "/opt/edgego/agent/agent/terminalfolder"
++    else:
++        TERMINAL_FOLDER = "terminalfolder"
+ 
+ TERMINAL_STATIC_FOLDER = TERMINAL_FOLDER + "/static"
+ TERMINAL_KEY_FILE = TERMINAL_FOLDER + "/key.pem"
+@@ -144,7 +150,7 @@ app.config["fd"] = {}
+ app.config["child_pid"] = {}
+ app.config["authentication"] = {}
+ app.config["username"] = ""
+-socketio = SocketIO(app, certfile=TERMINAL_CERT_FILE, keyfile=TERMINAL_KEY_FILE)
++socketio = SocketIO(app, certfile=TERMINAL_CERT_FILE, keyfile=TERMINAL_KEY_FILE, async_mode="threading")
+ 
+ 
+ def set_winsize(fd, row, col, xpix=0, ypix=0):
+-- 
+2.25.1
+
