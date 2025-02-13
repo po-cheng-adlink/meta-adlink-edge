@@ -5,13 +5,15 @@ LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda
 
 PR = "r0"
 SRCSERVER = "git://GitLab.Adlinktech.com/SEC_IST_CROSS_TEAM/edgego-agent.git"
-SRCBRANCH = "main"
+SRCBRANCH = "dev"
 SRCOPTIONS = ";protocol=http"
 SRCOPTIONS:append:private = ";user=${PRIVATE_USER}:${PRIVATE_TOKEN}"
-SRCREV = "caedfb60d0a5e1ba7b43343dab3177f6dd873476"
+SRCREV = "55dcfd56f507b47259d0d89c1d643535e5cbb108"
 SRC_URI = "${SRCSERVER};branch=${SRCBRANCH}${SRCOPTIONS}"
 
-SRC_URI += "file://devgoagent.service file://devgoupgrade.service"
+SRC_URI += "file://devgoagent.service file://devgoupgrade.service \
+  file://0002-Agent-terminal.py-SocketIO-use-async_mode-threading.patch \
+"
 
 RCONFLICTS:${PN} = "edgego-agent edgego-upgrade"
 

@@ -1,0 +1,26 @@
+From e30fbe3b1ae14ef1d946c2affb66e05503f90974 Mon Sep 17 00:00:00 2001
+From: "po.cheng" <po.cheng@adlinktech.com>
+Date: Fri, 21 Feb 2025 13:29:47 +0800
+Subject: [PATCH 5/5] DeviceGoMission: Update logs
+
+Signed-off-by: po.cheng <po.cheng@adlinktech.com>
+---
+ devicegosdk/devicegosdk/DeviceGoMission.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/devicegosdk/devicegosdk/DeviceGoMission.py b/devicegosdk/devicegosdk/DeviceGoMission.py
+index 6d8b623..261d1ce 100644
+--- a/devicegosdk/devicegosdk/DeviceGoMission.py
++++ b/devicegosdk/devicegosdk/DeviceGoMission.py
+@@ -598,7 +598,7 @@ class C_RPCMission(A_Mission):
+ 
+     def processFrp(self):
+         print("================ DEBUG processFrp ===============")
+-        print(f"================ self.attrlist:  ==============={self.attrlist}")
++        print(f"================ self.attrlist:  ===============\n{self.attrlist}\n================================================")
+ 
+         self.result = '{"result":"failed"}'
+         if not self.attrlist:
+-- 
+2.25.1
+
