@@ -128,7 +128,9 @@ RDEPENDS:${PN} += " \
 	python3-zeroconf \
 	python3-watchdog \
 	python3-devicegosdk \
+	python3-simple-websocket \
 "
+# 	scrot zlib1g-dev python3-gevent
 
 INSANE_SKIP:${PN} += "already-stripped file-rdeps"
 
