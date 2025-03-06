@@ -6,9 +6,22 @@ LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/LGPL-2.1-or-later;md5=2a4f4fd21
 
 SRC_URI[sha256sum] = "43f5e049957bdd80f181ae88223c0a2bdbe38181f241be21160d4c4b51c87365"
 
-inherit pypi python_poetry_core
+inherit pypi setuptools3
 
 PYPI_PACKAGE = "pySMART"
+
+do_configure:prepend() {
+    cat > ${S}/setup.py <<EOF
+from setuptools import setup
+
+setup(
+    name="${PYPI_PACKAGE}",
+    version="${PV}",
+    license="${LICENSE}",
+    packages=["pySMART", "pySMART/interface", "pySMART/interface/ata", "pySMART/interface/nvme"],
+)
+EOF
+}
 
 DEPENDS += " \
 	python3-pdm-native \

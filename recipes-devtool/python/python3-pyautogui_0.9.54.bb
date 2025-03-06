@@ -6,7 +6,7 @@ LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/BSD-3-Clause;md5=550794465ba0ec
 
 SRC_URI[sha256sum] = "dd1d29e8fd118941cb193f74df57e5c6ff8e9253b99c7b04f39cfc69f3ae04b2"
 
-inherit pypi python_poetry_core
+inherit pypi setuptools3
 
 PYPI_PACKAGE = "PyAutoGUI"
 

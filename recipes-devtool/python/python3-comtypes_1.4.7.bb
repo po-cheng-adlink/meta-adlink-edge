@@ -4,7 +4,7 @@ DESCRIPTION = "comtypes is a lightweight pure Python COM package based on the ct
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302"
 
-inherit python3-dir python_poetry_core
+inherit python3-dir setuptools3
 
 WHL_BPN="${@ d.getVar('BPN').replace(d.getVar('PYTHON_PN')+'-', '', 1)}"
 WHL_BP="${@ d.getVar('BP').replace(d.getVar('PYTHON_PN')+'-', '', 1)}"
