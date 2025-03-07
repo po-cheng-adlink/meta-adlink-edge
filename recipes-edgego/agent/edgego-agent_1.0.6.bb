@@ -136,6 +136,7 @@ RDEPENDS:${PN} += " \
 	python3-pyyaml \
 	python3-zeroconf \
 	python3-watchdog \
+	python3-terminal \
 	python3-devicegosdk \
 "
 
