@@ -118,8 +118,8 @@ RCONFLICTS:${PN} = "edgego-agent edgego-upgrade"
 S = "${WORKDIR}/git"
 
 RDEPENDS:${PN} += " \
-	python3-flask \
-	python3-flask-socketio \
+	python3-flask (>= 2.2.0) \
+	python3-flask-socketio (>= 5.3.0) \
 	python3-pycryptodome \
 	python3-cryptography \
 	python3-pamela \
@@ -129,6 +129,7 @@ RDEPENDS:${PN} += " \
 	python3-pyyaml \
 	python3-zeroconf \
 	python3-watchdog \
+	python3-terminal \
 	python3-devicegosdk \
 	python3-simple-websocket \
 "
