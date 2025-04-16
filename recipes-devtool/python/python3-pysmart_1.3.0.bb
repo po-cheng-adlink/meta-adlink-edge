@@ -24,7 +24,7 @@ EOF
 }
 
 DEPENDS += " \
-	python3-pdm-native \
+	python3-pdm \
 	python3-pdm-backend-native \
 	python3-setuptools-scm-native \
 "

@@ -11,6 +11,6 @@ inherit pypi setuptools3
 PYPI_PACKAGE = "PyAutoGUI"
 
 DEPENDS += " \
-	python3-pdm-native \
+	python3-pdm \
 	python3-pdm-backend-native \
 "

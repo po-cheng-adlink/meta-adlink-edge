@@ -9,6 +9,6 @@ SRC_URI[sha256sum] = "0ea6e2a99dded8c7783a4a06f2d31f5bdcad894d79101e8f09322e387a
 inherit pypi setuptools3
 
 DEPENDS += " \
-	python3-pdm-native \
+	python3-pdm \
 	python3-pdm-backend-native \
 "
