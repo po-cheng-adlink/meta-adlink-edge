@@ -8,7 +8,7 @@ SRCSERVER = "git://GitLab.Adlinktech.com/SEC_IST_CROSS_TEAM/edgego-agent.git"
 SRCBRANCH = "main"
 SRCOPTIONS = ";protocol=http"
 SRCOPTIONS:append:private = ";user=${PRIVATE_USER}:${PRIVATE_TOKEN}"
-SRCREV = "caedfb60d0a5e1ba7b43343dab3177f6dd873476"
+SRCREV = "a15ed8120c80be9e7e1a9ce203ee4da8867ba049"
 SRC_URI = "${SRCSERVER};branch=${SRCBRANCH}${SRCOPTIONS}"
 
 SRC_URI += "file://devgoagent.service"
