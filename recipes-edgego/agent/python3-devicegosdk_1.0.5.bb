@@ -5,10 +5,10 @@ LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda
 
 PR = "r0"
 SRCSERVER = "git://GitLab.Adlinktech.com/SEC_IST_CROSS_TEAM/edgego-agent.git"
-SRCBRANCH = "dev"
+SRCBRANCH = "main"
 SRCOPTIONS = ";protocol=http"
 SRCOPTIONS:append:private = ";user=${PRIVATE_USER}:${PRIVATE_TOKEN}"
-SRCREV = "55dcfd56f507b47259d0d89c1d643535e5cbb108"
+SRCREV = "a15ed8120c80be9e7e1a9ce203ee4da8867ba049"
 SRC_URI = "${SRCSERVER};branch=${SRCBRANCH}${SRCOPTIONS}"
 
 SRC_URI += " \
