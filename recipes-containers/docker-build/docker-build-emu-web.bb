@@ -76,7 +76,22 @@ do_install () {
 	if [ -f ${S}/docker-compose.yml ]; then
 		install -m 0644 ${S}/docker-compose.yml ${D}/containers/docker-compose.yml
 	fi
+	for dimg in ${DOCKER_COMPOSE_IMAGES}; do
+		if which ${COMPRESSCMD} ; then
+			if [ -f ${B}/${dimg}.${IMAGE_COMPRESS_TYPE} ]; then
+				install -m 0644 ${B}/${dimg}.${IMAGE_COMPRESS_TYPE} ${D}/containers/docker-build-${dimg}.${IMAGE_COMPRESS_TYPE}
+			else
+				bbfatal "${B}/${dimg}.${IMAGE_COMPRESS_TYPE} not found."
+			fi
+		else
+			if [ -f ${B}/${dimg}.tar ]; then
+				install -m 0644 ${B}/${dimg}.tar ${D}/containers/docker-build-${dimg}.tar
+			else
+				bbfatal "${B}/${dimg}.tar not found."
+			fi
+		fi
+	done
 }
 
 FILES:${PN} += "/containers"
-
+SYSROOT_DIRS:append = " /containers"
